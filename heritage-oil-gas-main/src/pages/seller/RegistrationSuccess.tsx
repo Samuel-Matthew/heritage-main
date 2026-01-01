@@ -15,6 +15,12 @@ const RegistrationSuccess = () => {
   const location = useLocation();
   const storeId = location.state?.storeId;
 
+  const handleDashboardClick = () => {
+    const dashboardUrl =
+      import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5174";
+    window.location.href = dashboardUrl + "/seller/dashboard";
+  };
+
   return (
     <MainLayout>
       <div className="gradient-hero text-primary-foreground py-12">
@@ -103,10 +109,8 @@ const RegistrationSuccess = () => {
                 <Button variant="outline" asChild>
                   <Link to="/">Back to Home</Link>
                 </Button>
-                <Button asChild>
-                  <Link to="/login">
-                    Go to Login <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
+                <Button onClick={handleDashboardClick}>
+                  Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </CardContent>

@@ -219,7 +219,7 @@ function AdminSubscriptions() {
           rejection_reason: rejectionReason,
         }
       );
-      toast.error("Subscription rejected");
+      toast.success("Subscription rejected successfully");
       setIsRejectDialogOpen(false);
       setRejectionReason("");
       setRejectingSubscriptionId(null);

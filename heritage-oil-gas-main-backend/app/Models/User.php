@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Notifications\VerifyEmailNotification;
+use App\Notifications\CustomResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -20,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'profile_image_path',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -53,6 +55,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmailNotification());
+    }
+
+    /**
+     * Send the password reset notification.
+     * Uses custom notification to include frontend reset URL
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPasswordNotification($token));
     }
 }
 

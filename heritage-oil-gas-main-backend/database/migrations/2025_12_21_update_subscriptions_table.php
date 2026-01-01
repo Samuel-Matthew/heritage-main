@@ -14,6 +14,9 @@ return new class extends Migration {
             // Add subscription_plan_id column
             $table->foreignId('subscription_plan_id')->nullable()->constrained('subscription_plans')->after('store_id');
 
+            // Add subscription_code column
+            $table->string('subscription_code')->unique()->nullable()->after('id');
+
             // Add payment_receipt_path column
             $table->string('payment_receipt_path')->nullable()->after('subscription_plan_id');
 
@@ -32,6 +35,19 @@ return new class extends Migration {
             if (Schema::hasColumn('subscriptions', 'product_limit')) {
                 $table->dropColumn('product_limit');
             }
+        });
+
+        // Generate subscription codes for existing subscriptions
+        $subscriptions = \DB::table('subscriptions')->whereNull('subscription_code')->get();
+        foreach ($subscriptions as $subscription) {
+            \DB::table('subscriptions')
+                ->where('id', $subscription->id)
+                ->update(['subscription_code' => 'SUB-' . $subscription->store_id . '-' . $subscription->id . '-' . strtoupper(substr(uniqid(), -6))]);
+        }
+
+        // Make subscription_code not nullable
+        Schema::table('subscriptions', function (Blueprint $table) {
+            $table->string('subscription_code')->change();
         });
     }
 

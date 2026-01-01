@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
+use App\Notifications\SubscriptionApprovedNotification;
+use App\Notifications\SubscriptionRejectedNotification;
 use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
@@ -165,9 +167,23 @@ class SubscriptionController extends Controller
                 'activated_by' => $request->user()->id,
             ]);
 
-            // Update store's subscription field
+            // Update store's subscription field and mark plan as active
             $subscription->store->update([
                 'subscription' => $subscription->plan->slug,
+                'subscription_plan_status' => 'active',  // Mark subscription plan as active
+            ]);
+
+            // Reload subscription with relationships
+            $subscription->load(['store.owner', 'plan']);
+
+            // Send approval notification to store owner
+            $subscription->store->owner->notify(new SubscriptionApprovedNotification($subscription));
+
+            \Log::info('Subscription approved by admin', [
+                'subscription_id' => $subscription->id,
+                'store_id' => $subscription->store_id,
+                'plan_name' => $subscription->plan->name,
+                'admin_id' => $request->user()->id,
             ]);
 
             return response()->json([
@@ -193,20 +209,59 @@ class SubscriptionController extends Controller
      */
     public function reject(Request $request, Subscription $subscription)
     {
-        $request->validate([
+        \Log::info('Subscription rejection request', [
+            'subscription_id' => $subscription->id,
+            'current_status' => $subscription->status,
+            'user_id' => $request->user()?->id,
+            'user_role' => $request->user()?->role,
+        ]);
+
+        $validated = $request->validate([
             'rejection_reason' => 'required|string|max:1000',
         ]);
 
+        \Log::info('Validation passed', ['reason' => $validated['rejection_reason']]);
+
         if ($subscription->status !== 'pending') {
+            \Log::warning('Subscription not in pending status', [
+                'subscription_id' => $subscription->id,
+                'status' => $subscription->status,
+            ]);
             return response()->json([
                 'message' => 'Only pending subscriptions can be rejected',
             ], 400);
         }
 
         try {
+            \Log::info('Updating subscription status', ['subscription_id' => $subscription->id]);
             $subscription->update([
                 'status' => 'rejected',
-                'rejection_reason' => $request->rejection_reason,
+                'rejection_reason' => $validated['rejection_reason'],
+            ]);
+
+            \Log::info('Loading relationships', ['subscription_id' => $subscription->id]);
+            // Reload subscription with relationships
+            $subscription->load(['store.owner', 'plan']);
+
+            \Log::info('Subscription loaded', [
+                'subscription_id' => $subscription->id,
+                'store_id' => $subscription->store_id,
+                'has_owner' => !!$subscription->store?->owner,
+                'owner_email' => $subscription->store?->owner?->email,
+            ]);
+
+            // Send rejection notification to store owner
+            \Log::info('Sending rejection notification', [
+                'subscription_id' => $subscription->id,
+                'owner_email' => $subscription->store?->owner?->email,
+            ]);
+            $subscription->store->owner->notify(new SubscriptionRejectedNotification($subscription));
+
+            \Log::info('Subscription rejected by admin', [
+                'subscription_id' => $subscription->id,
+                'store_id' => $subscription->store_id,
+                'admin_id' => $request->user()->id,
+                'reason' => $validated['rejection_reason'],
             ]);
 
             return response()->json([
@@ -218,6 +273,11 @@ class SubscriptionController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
+            \Log::error('Failed to reject subscription', [
+                'subscription_id' => $subscription->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'message' => 'Failed to reject subscription',
                 'error' => $e->getMessage(),

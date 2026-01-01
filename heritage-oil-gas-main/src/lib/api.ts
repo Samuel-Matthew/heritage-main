@@ -108,7 +108,7 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Log responses for debugging
+ * Handle responses and errors, including rate limiting (429)
  */
 api.interceptors.response.use(
   (response) => {
@@ -123,12 +123,38 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Handle rate limiting (HTTP 429)
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'] || 
+                        error.response.headers['Retry-After'] ||
+                        '60';
+      const message = error.response.data?.message || 
+                     'Too many requests. Please try again later.';
+      
+      // Create a detailed error object for rate limiting
+      const rateLimitError = new Error(message) as any;
+      rateLimitError.response = error.response;
+      rateLimitError.status = 429;
+      rateLimitError.retryAfter = parseInt(retryAfter);
+      rateLimitError.isRateLimited = true;
+      
+      console.error("[API Rate Limited]", {
+        url: error.config?.url,
+        status: 429,
+        retryAfter: rateLimitError.retryAfter,
+        message: message,
+      });
+      
+      return Promise.reject(rateLimitError);
+    }
+
     console.error("[API Error]", {
       url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
     });
+    
     return Promise.reject(error);
   }
 );

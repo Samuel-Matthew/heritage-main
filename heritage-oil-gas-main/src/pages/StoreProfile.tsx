@@ -7,6 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductCard, Product } from "@/components/products/ProductCard";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Star,
   MapPin,
   Phone,
@@ -16,16 +33,23 @@ import {
   Package,
   Clock,
   ChevronRight,
+  Flag,
 } from "lucide-react";
 import api, { getImageUrl } from "@/lib/api";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StoreProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [storeData, setStoreData] = useState<any>(null);
   const [storeProducts, setStoreProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   // Fetch store and its products on mount
   useEffect(() => {
@@ -147,6 +171,41 @@ const StoreProfile = () => {
     }
   }, [id]);
 
+  const handleReportSubmit = async () => {
+    if (!user) {
+      toast.error("You must be signed in to report a store");
+      return;
+    }
+
+    if (!reportReason) {
+      toast.error("Please select a report reason");
+      return;
+    }
+
+    setIsSubmittingReport(true);
+    try {
+      await api.post(`/api/stores/${id}/report`, {
+        store_id: id,
+        reason: reportReason,
+        description: reportDescription || null,
+      });
+
+      toast.success(
+        "Thank you for reporting this store. Our team will review it shortly."
+      );
+      setShowReportModal(false);
+      setReportReason("");
+      setReportDescription("");
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        "Failed to submit report. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
   return (
     <MainLayout>
       {isLoading ? (
@@ -244,6 +303,22 @@ const StoreProfile = () => {
                           }}
                         >
                           <Share2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (!user) {
+                              toast.error(
+                                "You must be signed in to report a store"
+                              );
+                              return;
+                            }
+                            setShowReportModal(true);
+                          }}
+                          title="Report this store"
+                        >
+                          <Flag className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -353,6 +428,81 @@ const StoreProfile = () => {
           </div>
         </>
       )}
+
+      {/* Report Modal */}
+      <Dialog open={showReportModal} onOpenChange={setShowReportModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Report Store</DialogTitle>
+            <DialogDescription>
+              Help us improve the marketplace by reporting issues with this
+              store
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reason">Report Reason *</Label>
+              <Select value={reportReason} onValueChange={setReportReason}>
+                <SelectTrigger id="reason">
+                  <SelectValue placeholder="Select a reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inappropriate_content">
+                    Inappropriate Content
+                  </SelectItem>
+                  <SelectItem value="fraudulent_activity">
+                    Fraudulent Activity
+                  </SelectItem>
+                  <SelectItem value="poor_quality">
+                    Poor Quality Products
+                  </SelectItem>
+                  <SelectItem value="fake_products">Fake Products</SelectItem>
+                  <SelectItem value="misleading_information">
+                    Misleading Information
+                  </SelectItem>
+                  <SelectItem value="unprofessional_behavior">
+                    Unprofessional Behavior
+                  </SelectItem>
+                  <SelectItem value="scam">Scam</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Details (Optional)</Label>
+              <Textarea
+                id="description"
+                placeholder="Please provide any additional details about your report..."
+                value={reportDescription}
+                onChange={(e) => setReportDescription(e.target.value)}
+                rows={4}
+                maxLength={1000}
+              />
+              <p className="text-xs text-muted-foreground">
+                {reportDescription.length}/1000 characters
+              </p>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowReportModal(false)}
+                disabled={isSubmittingReport}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleReportSubmit}
+                disabled={isSubmittingReport || !reportReason}
+              >
+                {isSubmittingReport ? "Submitting..." : "Submit Report"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

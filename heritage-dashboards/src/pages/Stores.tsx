@@ -388,6 +388,72 @@ export default function Stores() {
           </table>
         </div>
       </div>
+
+      {/* Action Dialog */}
+      <Dialog open={actionType !== null} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {actionType === "approve"
+                ? "Approve Store"
+                : actionType === "reject"
+                ? "Reject Store"
+                : "Suspend Store"}
+            </DialogTitle>
+            <DialogDescription>
+              {actionType === "approve"
+                ? `Are you sure you want to approve "${selectedStore?.name}"?`
+                : actionType === "reject"
+                ? `Reject "${selectedStore?.name}" - please provide a reason`
+                : `Suspend "${selectedStore?.name}" - please provide a reason`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {(actionType === "reject" || actionType === "suspend") && (
+              <div>
+                <Label htmlFor="reason">Reason</Label>
+                <Textarea
+                  id="reason"
+                  placeholder={
+                    actionType === "reject"
+                      ? "Why are you rejecting this store?"
+                      : "Why are you suspending this store?"
+                  }
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>
+              Cancel
+            </Button>
+            <Button
+              onClick={
+                actionType === "approve"
+                  ? handleApproveStore
+                  : actionType === "reject"
+                  ? handleRejectStore
+                  : handleSuspendStore
+              }
+              disabled={isActionLoading}
+              variant={actionType === "approve" ? "default" : "destructive"}
+            >
+              {isActionLoading
+                ? "Processing..."
+                : actionType === "approve"
+                ? "Approve"
+                : actionType === "reject"
+                ? "Reject"
+                : "Suspend"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

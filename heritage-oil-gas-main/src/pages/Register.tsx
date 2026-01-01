@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Fuel, Mail, CheckCircle } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +43,8 @@ const Register: React.FC = () => {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const emailCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { isLimited, countdown, handleRateLimitError, resetRateLimit } =
+    useRateLimit();
 
   const checkEmailAvailability = async (email: string) => {
     try {
@@ -83,7 +86,6 @@ const Register: React.FC = () => {
 
       // Only check if email looks complete (has @ and a domain)
       if (value && value.includes("@") && value.includes(".")) {
-        setCheckingEmail(true);
         emailCheckTimeoutRef.current = setTimeout(() => {
           checkEmailAvailability(value);
         }, 800); // Wait 800ms after user stops typing before checking
@@ -219,6 +221,22 @@ const Register: React.FC = () => {
       console.error("Registration error:", error);
       console.error("Error response:", error.response?.data);
       console.error("Error status:", error.response?.status);
+
+      // Handle rate limit error (HTTP 429)
+      if (error.status === 429 || error.isRateLimited) {
+        handleRateLimitError(
+          error.retryAfter || 60,
+          error.message ||
+            "Too many registration attempts. Please try again later."
+        );
+        toast.error(
+          `⚠️ Too Many Attempts - Wait ${
+            error.retryAfter || 60
+          } seconds before trying again`
+        );
+        setLoading(false);
+        return;
+      }
 
       // Ensure loading is false before showing errors
       setLoading(false);
@@ -387,9 +405,15 @@ const Register: React.FC = () => {
                 type="submit"
                 className="w-full"
                 size="lg"
-                disabled={loading || emailError !== null || checkingEmail}
+                disabled={
+                  loading || emailError !== null || checkingEmail || isLimited
+                }
               >
-                {loading ? "Creating account..." : "Create Account"}
+                {loading
+                  ? "Creating account..."
+                  : isLimited
+                  ? `Wait ${countdown}s`
+                  : "Create Account"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm">
@@ -447,12 +471,12 @@ const Register: React.FC = () => {
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>✓ Check your email (including spam folder)</li>
                   <li>✓ Click the verification link</li>
-                  <li>✓ Return here to log in</li>
+                  {/* <li>✓ Return here to log in</li> */}
                 </ul>
               </div>
 
               <div className="space-y-3 pt-4">
-                <Button
+                {/* <Button
                   onClick={() => {
                     setShowVerificationModal(false);
                     navigate("/login");
@@ -460,7 +484,17 @@ const Register: React.FC = () => {
                   className="w-full"
                 >
                   Go to Login
+                </Button> */}
+
+                <Button
+                  onClick={() =>
+                    window.open("https://mail.google.com", "_blank")
+                  }
+                  className="w-full"
+                >
+                  Open Gmail
                 </Button>
+
                 <Button
                   variant="outline"
                   onClick={() => setShowVerificationModal(false)}

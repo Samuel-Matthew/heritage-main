@@ -19,6 +19,14 @@ class DatabaseSeeder extends Seeder
         // Seed product categories
         $this->call(CategorySeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
+
+        // Seed site settings
+        try {
+            $this->call(SiteSettingSeeder::class);
+        } catch (\Exception $e) {
+            \Log::warning('SiteSettingSeeder failed: ' . $e->getMessage());
+        }
+
         // User::factory(10)->create();
 
         User::factory()->create([

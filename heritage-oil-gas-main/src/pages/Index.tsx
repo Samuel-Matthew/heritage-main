@@ -147,12 +147,14 @@ const Index = () => {
 
         // Fetch top stores with accurate product counts
         try {
-          const storesResponse = await api.get(
-            "/api/stores?per_page=50&sort=products_count"
-          );
-          const stores = storesResponse.data.data || storesResponse.data;
+          const storesResponse = await api.get("/api/stores?limit=50");
+          console.log("Stores API response:", storesResponse.data);
 
-          const topStoresList = (Array.isArray(stores) ? stores : [stores])
+          // Handle Laravel paginated response structure
+          const storesData = storesResponse.data.data || storesResponse.data;
+          const stores = Array.isArray(storesData) ? storesData : [storesData];
+
+          const topStoresList = stores
             .map((store: any) => {
               // Use state + country, or just state, or address, or default to Nigeria
               const location =

@@ -4,25 +4,32 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\PendingUser;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\Rules;
+use Carbon\Carbon;
 
 class RegisteredUserController extends Controller
 {
     /**
      * Handle an incoming registration request.
+     * Saves user to pending_users table until email is verified.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): Response|JsonResponse
     {
         try {
-            \Log::info('Registration attempt started', [
+            Log::info('Registration attempt started', [
                 'email' => $request->input('email'),
                 'name' => $request->input('name'),
             ]);
@@ -34,97 +41,87 @@ class RegisteredUserController extends Controller
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]);
 
-            \Log::info('Validation passed', ['email' => $validated['email']]);
+            Log::info('Validation passed', ['email' => $validated['email']]);
 
-            // Check if user already exists
+            // Check if user already exists in users table
             $existingUser = User::where('email', $validated['email'])->first();
             if ($existingUser) {
-                \Log::warning('User already exists', ['email' => $validated['email']]);
+                Log::warning('User already exists', ['email' => $validated['email']]);
                 return response()->json([
                     'message' => 'The email has already been registered.',
                     'errors' => ['email' => ['The email has already been registered.']]
                 ], 422);
             }
 
-            \Log::info('Creating user with data', [
+            // Check if user already exists in pending_users table
+            $pendingUserExists = PendingUser::where('email', $validated['email'])->first();
+            if ($pendingUserExists) {
+                Log::warning('Pending user already exists', ['email' => $validated['email']]);
+                return response()->json([
+                    'message' => 'This email is already pending verification. Please check your email for the verification link.',
+                    'errors' => ['email' => ['Email already pending verification']]
+                ], 422);
+            }
+
+            Log::info('Saving pending user registration', [
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? 'null'
             ]);
 
-            // Use validated data, not raw request
-            $user = User::create([
+            // Save to pending_users table with 60 minute expiration
+            $pendingUser = PendingUser::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
+                'role' => 'buyer',
+                'expires_at' => Carbon::now()->addMinutes(10),
             ]);
 
-            \Log::info('User model returned', [
-                'user_id' => $user?->id,
-                'user_email' => $user?->email,
-                'is_null' => is_null($user)
+            Log::info('Pending user created successfully', [
+                'id' => $pendingUser->id,
+                'email' => $pendingUser->email,
             ]);
 
-            if (!$user) {
-                \Log::error('User::create() returned null');
-                return response()->json([
-                    'message' => 'Failed to create user - create returned null',
-                    'errors' => ['general' => ['User creation failed']]
-                ], 500);
+            // Send verification email
+            Log::info('Sending verification email', [
+                'email' => $pendingUser->email,
+            ]);
+
+            // Send the email notification directly using the PendingUser model
+            try {
+                $pendingUser->notify(new VerifyEmailNotification());
+                Log::info('Verification email sent successfully', [
+                    'email' => $pendingUser->email,
+                ]);
+            } catch (\Exception $emailException) {
+                Log::error('Failed to send verification email', [
+                    'email' => $pendingUser->email,
+                    'error' => $emailException->getMessage(),
+                    'trace' => $emailException->getTraceAsString(),
+                ]);
+                // Don't fail registration if email fails - user can request resend
             }
-
-            // Verify user was actually saved
-            $verifyUser = User::find($user->id);
-            \Log::info('Verifying saved user', [
-                'found' => !is_null($verifyUser),
-                'user_id' => $user->id
-            ]);
-
-            if (!$verifyUser) {
-                \Log::error('User was not found in database after create', ['id' => $user->id]);
-                return response()->json([
-                    'message' => 'User creation may have failed - could not verify in database',
-                    'errors' => ['general' => ['User not found after creation']]
-                ], 500);
-            }
-
-            \Log::info('User successfully created and verified', [
-                'id' => $user->id,
-                'email' => $user->email,
-                'name' => $user->name
-            ]);
-
-            // Dispatch the Registered event to send verification email
-            \Log::info('Dispatching Registered event to send verification email', [
-                'email' => $user->email,
-                'user_id' => $user->id
-            ]);
-            event(new Registered($user));
-            \Log::info('Verification email dispatched successfully');
-
-            \Log::info('Registered event dispatched - verification email queued');
 
             // Return success without logging in the user
             // User must verify email first
             return response()->json([
                 'message' => 'Registration successful! Please check your email to verify your account.',
                 'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'role' => $user->role,
-                    'email_verified_at' => $user->email_verified_at,
+                    'email' => $pendingUser->email,
+                    'name' => $pendingUser->name,
+                    'phone' => $pendingUser->phone,
+                    'role' => $pendingUser->role,
                 ]
             ], 200)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', '0');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::warning('Validation exception', ['errors' => $e->errors()]);
+            Log::warning('Validation exception', ['errors' => $e->errors()]);
             throw $e;
         } catch (\Exception $e) {
-            \Log::error('Registration error - exception caught', [
+            Log::error('Registration error - exception caught', [
                 'message' => $e->getMessage(),
                 'code' => $e->getCode(),
                 'class' => get_class($e),
@@ -140,7 +137,7 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Check if an email already exists in the database
+     * Check if an email already exists in the database or pending registrations
      */
     public function checkEmail(Request $request): JsonResponse
     {
@@ -149,7 +146,10 @@ class RegisteredUserController extends Controller
         ]);
 
         $email = strtolower($request->email);
-        $exists = User::where('email', $email)->exists();
+
+        // Check both users and pending_users tables
+        $exists = User::where('email', $email)->exists() ||
+            PendingUser::where('email', $email)->exists();
 
         return response()->json([
             'exists' => $exists,

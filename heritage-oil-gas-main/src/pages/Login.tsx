@@ -14,6 +14,7 @@ import {
 import { Fuel, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { getRoleBasedRedirect } from "@/lib/roleUtils";
 
 interface LoginProps {
@@ -24,10 +25,14 @@ const Login = ({ isSeller = false }: LoginProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login, isAuthenticated, user } = useAuth();
+  const { isLimited, countdown, handleRateLimitError, resetRateLimit } =
+    useRateLimit();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Clear old session cookies on page load (from registration)
   useEffect(() => {
@@ -67,13 +72,63 @@ const Login = ({ isSeller = false }: LoginProps) => {
     }
   }, []);
 
+  // Email validation helper
+  const validateEmail = (value: string): string | null => {
+    if (!value) return "Email is required";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return "Please enter a valid email address";
+    return null;
+  };
+
+  // Password validation helper
+  const validatePassword = (value: string): string | null => {
+    if (!value) return "Password is required";
+    if (value.length < 6) return "Password must be at least 6 characters";
+    return null;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    if (value) {
+      setEmailError(validateEmail(value));
+    } else {
+      setEmailError(null);
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    if (value) {
+      setPasswordError(validatePassword(value));
+    } else {
+      setPasswordError(null);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
+    // Validate email
+    const emailValidationError = validateEmail(email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: "Invalid Email",
+        description: emailValidationError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setPasswordError(passwordValidationError);
+      toast({
+        title: "Invalid Password",
+        description: passwordValidationError,
         variant: "destructive",
       });
       return;
@@ -110,6 +165,113 @@ const Login = ({ isSeller = false }: LoginProps) => {
       }
     } catch (error: any) {
       console.error("Login error:", error);
+
+      // Handle rate limit error (HTTP 429)
+      if (error.status === 429 || error.isRateLimited) {
+        handleRateLimitError(
+          error.retryAfter || 60,
+          error.message || "Too many login attempts. Please try again later."
+        );
+        toast({
+          title: "⚠️ Too Many Attempts",
+          description: `Please wait ${
+            error.retryAfter || 60
+          } seconds before trying again`,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle validation errors (422 - wrong credentials)
+      if (error.response?.status === 422) {
+        const errors = error.response?.data?.errors || {};
+        const message = error.response?.data?.message || "";
+
+        // Check for password-specific errors FIRST (priority over email)
+        if (errors.password) {
+          const passwordErrorMsg = Array.isArray(errors.password)
+            ? errors.password[0]
+            : errors.password;
+          setPasswordError(passwordErrorMsg);
+          toast({
+            title: "❌ Wrong Password",
+            description:
+              passwordErrorMsg ||
+              "The password you entered is incorrect. Please try again.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Check for email-specific errors
+        if (errors.email) {
+          const emailErrorMsg = Array.isArray(errors.email)
+            ? errors.email[0]
+            : errors.email;
+
+          // If the error message suggests wrong password (user exists but credentials don't match)
+          if (
+            emailErrorMsg.toLowerCase().includes("password") ||
+            message.toLowerCase().includes("password") ||
+            message.toLowerCase().includes("credentials") ||
+            message.toLowerCase().includes("match")
+          ) {
+            setPasswordError("The password you entered is incorrect");
+            toast({
+              title: "❌ Wrong Password",
+              description:
+                "The password you entered is incorrect. Please try again.",
+              variant: "destructive",
+            });
+          } else {
+            // Actual email not found
+            setEmailError(emailErrorMsg);
+            toast({
+              title: "❌ Email Not Found",
+              description:
+                emailErrorMsg ||
+                "This email is not registered. Please check and try again.",
+              variant: "destructive",
+            });
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        // Handle generic "credentials do not match" error
+        if (
+          message.toLowerCase().includes("credentials") ||
+          message.toLowerCase().includes("match") ||
+          message.toLowerCase().includes("password")
+        ) {
+          // When backend says credentials don't match, it's a wrong password
+          setPasswordError("The password you entered is incorrect");
+          toast({
+            title: "❌ Wrong Password",
+            description:
+              "The password you entered is incorrect. Please try again.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Generic validation error
+        const firstErrorKey = Object.keys(errors)[0];
+        const firstError = errors[firstErrorKey];
+        const errorMsg = Array.isArray(firstError) ? firstError[0] : firstError;
+        toast({
+          title: "❌ Validation Error",
+          description: errorMsg || "Please check your details and try again",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Handle other errors
       const errorMessage =
         error.message ||
         error.response?.data?.message ||
@@ -150,9 +312,17 @@ const Login = ({ isSeller = false }: LoginProps) => {
                   type="email"
                   placeholder="name@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
+                  onChange={handleEmailChange}
+                  disabled={isLoading || isLimited}
+                  className={
+                    emailError ? "border-red-500 focus:ring-red-500" : ""
+                  }
                 />
+                {emailError && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    ✕ {emailError}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -162,8 +332,11 @@ const Login = ({ isSeller = false }: LoginProps) => {
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
+                    onChange={handlePasswordChange}
+                    disabled={isLoading || isLimited}
+                    className={
+                      passwordError ? "border-red-500 focus:ring-red-500" : ""
+                    }
                   />
                   <button
                     type="button"
@@ -178,6 +351,11 @@ const Login = ({ isSeller = false }: LoginProps) => {
                     )}
                   </button>
                 </div>
+                {passwordError && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    ✕ {passwordError}
+                  </p>
+                )}
               </div>
               <div className="flex items-center justify-between text-sm">
                 <Link
@@ -191,9 +369,15 @@ const Login = ({ isSeller = false }: LoginProps) => {
                 type="submit"
                 className="w-full"
                 size="lg"
-                disabled={isLoading}
+                disabled={
+                  isLoading || isLimited || !!emailError || !!passwordError
+                }
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading
+                  ? "Signing in..."
+                  : isLimited
+                  ? `Wait ${countdown}s`
+                  : "Sign In"}
               </Button>
             </form>
             <div className="mt-6 text-center text-sm">

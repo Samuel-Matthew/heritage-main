@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Store;
+use App\Notifications\StoreVerificationNotification;
 use Illuminate\Http\Request;
 
 class StoreController extends Controller
@@ -126,6 +127,15 @@ class StoreController extends Controller
                 'approved_at' => now(),
             ]);
 
+            // Send approval notification to store owner
+            $store->owner->notify(new StoreVerificationNotification($store, true));
+
+            \Log::info('Store approved by admin', [
+                'store_id' => $store->id,
+                'store_name' => $store->name,
+                'admin_id' => $request->user()->id,
+            ]);
+
             return response()->json([
                 'message' => 'Store approved successfully',
                 'store' => $store,
@@ -155,6 +165,16 @@ class StoreController extends Controller
             $store->update([
                 'status' => 'rejected',
                 'rejection_reason' => $validated['rejection_reason'],
+            ]);
+
+            // Send rejection notification to store owner
+            $store->owner->notify(new StoreVerificationNotification($store, false));
+
+            \Log::info('Store rejected by admin', [
+                'store_id' => $store->id,
+                'store_name' => $store->name,
+                'admin_id' => $request->user()->id,
+                'reason' => $validated['rejection_reason'],
             ]);
 
             return response()->json([

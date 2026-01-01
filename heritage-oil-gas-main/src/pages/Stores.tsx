@@ -160,8 +160,8 @@ const Stores = () => {
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="reviews">Most Reviews</SelectItem>
+                  {/* <SelectItem value="rating">Highest Rated</SelectItem> */}
+                  {/* <SelectItem value="reviews">Most Reviews</SelectItem> */}
                   <SelectItem value="products">Most Products</SelectItem>
                   <SelectItem value="name">Name A-Z</SelectItem>
                 </SelectContent>

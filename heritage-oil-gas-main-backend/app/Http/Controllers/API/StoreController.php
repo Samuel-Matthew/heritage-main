@@ -37,6 +37,7 @@ class StoreController extends Controller
                 ]);
                 $store->update([
                     'subscription' => 'basic',
+                    'subscription_plan_status' => 'expired',
                 ]);
 
                 // Suspend all products for this store when subscription expires
@@ -45,16 +46,19 @@ class StoreController extends Controller
                 ]);
             }
 
-            $subscriptionData = [
-                'id' => $activeSubscription->id,
-                'plan_id' => $activeSubscription->plan->id,
-                'plan_name' => $activeSubscription->plan->slug,
-                'plan_display_name' => $activeSubscription->plan->name,
-                'product_limit' => $activeSubscription->plan->product_limit,
-                'status' => $activeSubscription->status,
-                'starts_at' => $activeSubscription->starts_at->format('Y-m-d'),
-                'ends_at' => $activeSubscription->ends_at->format('Y-m-d'),
-            ];
+            // Only return subscription data if it's still active
+            if ($activeSubscription->status === 'active') {
+                $subscriptionData = [
+                    'id' => $activeSubscription->id,
+                    'plan_id' => $activeSubscription->plan->id,
+                    'plan_name' => $activeSubscription->plan->slug,
+                    'plan_display_name' => $activeSubscription->plan->name,
+                    'product_limit' => $activeSubscription->plan->product_limit,
+                    'status' => $activeSubscription->status,
+                    'starts_at' => $activeSubscription->starts_at->format('Y-m-d'),
+                    'ends_at' => $activeSubscription->ends_at->format('Y-m-d'),
+                ];
+            }
         }
 
         return response()->json([
@@ -73,6 +77,7 @@ class StoreController extends Controller
             'openingHours' => $store->opening_hours,
             'status' => $store->status,
             'subscription' => $store->subscription,
+            'subscription_plan_status' => $store->subscription_plan_status,
             'active_subscription' => $subscriptionData,
             'rc_number' => $store->rc_number,
             'business_lines' => explode(',', $store->business_lines),

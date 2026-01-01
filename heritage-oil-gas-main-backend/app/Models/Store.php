@@ -21,6 +21,7 @@ class Store extends Model
         'email',
         'status',
         'subscription',
+        'subscription_plan_status',
         'approved_at',
         'rejection_reason',
         'suspension_reason',

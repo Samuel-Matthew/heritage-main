@@ -10,8 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('profile_image_path')->nullable()->after('email');
+        Schema::table('stores', function (Blueprint $table) {
+            $table->enum('subscription_plan_status', ['active', 'expired'])->default('expired')->after('subscription');
         });
     }
 
@@ -20,8 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('profile_image_path');
+        Schema::table('stores', function (Blueprint $table) {
+            $table->dropColumn('subscription_plan_status');
         });
     }
 };

@@ -17,6 +17,11 @@ class FeaturedProductController extends Controller
      */
     public function featureProduct(Request $request, $productId)
     {
+        $validated = $request->validate([
+            'featured_start_at' => 'nullable|date_format:Y-m-d\TH:i',
+            'featured_end_at' => 'nullable|date_format:Y-m-d\TH:i|after:featured_start_at',
+        ]);
+
         $product = Product::findOrFail($productId);
 
         // Verify product belongs to seller
@@ -43,7 +48,7 @@ class FeaturedProductController extends Controller
 
         // Get plan type from latest subscription (regardless of status), or use basic as default
         $latestSubscription = $store->subscriptions()->latest()->first();
-        $planType = $latestSubscription?->plan?->plan_type ?? 'basic';
+        $planType = $latestSubscription?->plan?->slug ?? 'basic';
 
         // Check plan eligibility - count ALL promotions (active or expired) created with current subscription
         // This ensures slots don't reset when promotions expire
@@ -60,16 +65,23 @@ class FeaturedProductController extends Controller
             ], 422);
         }
 
+        // Set start and finish time - use custom times if provided, otherwise use plan defaults
+        $startTimeProvided = isset($validated['featured_start_at']) && $validated['featured_start_at'];
+        $endTimeProvided = isset($validated['featured_end_at']) && $validated['featured_end_at'];
 
-        // Set start and finish time based on plan
-        $startTime = now();
-        $finishTime = match ($planType) {
-            'platinum' => $startTime->copy()->addDays(30),
-            'gold' => $startTime->copy()->addDays(14),
-            'silver' => $startTime->copy()->addDays(7),
-            'basic' => $startTime->copy()->addDays(3),
-            default => $startTime->copy()->addDays(3),
-        };
+        if ($startTimeProvided && $endTimeProvided) {
+            $startTime = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['featured_start_at']);
+            $finishTime = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['featured_end_at']);
+        } else {
+            $startTime = now();
+            $finishTime = match ($planType) {
+                'platinum' => $startTime->copy()->addDays(7),
+                'gold' => $startTime->copy()->addDays(5),
+                'silver' => $startTime->copy()->addDays(3),
+                'basic' => $startTime->copy()->addDays(0),
+                default => $startTime->copy()->addDays(0),
+            };
+        }
 
         // Create featured product entry
         $featuredProduct = FeaturedProduct::create([
@@ -164,7 +176,7 @@ class FeaturedProductController extends Controller
 
         // Get plan type from latest subscription (regardless of status), or use basic as default
         $latestSubscription = $store->subscriptions()->latest()->first();
-        $planType = $latestSubscription?->plan?->plan_type ?? 'basic';
+        $planType = $latestSubscription?->plan?->slug ?? 'basic';
 
         // Check plan eligibility - count ALL hot deals (active or expired) created with current subscription
         // This ensures slots don't reset when promotions expire
@@ -292,7 +304,7 @@ class FeaturedProductController extends Controller
             ]);
         }
 
-        // Filter by LATEST subscription code only
+        // Filter by store and active status
         $featured = FeaturedProduct::where('store_id', $store->id)
             ->where('subscription_code', $latestSubscription->subscription_code)
             ->where('is_active', true)
@@ -308,11 +320,11 @@ class FeaturedProductController extends Controller
         return response()->json([
             'featured_products' => $featured,
             'hot_deals' => $hotDeals,
-            'plan_type' => $latestSubscription->plan_type ?? 'basic',
+            'plan_type' => $latestSubscription->plan?->slug ?? 'basic',
             'featured_slots_used' => $featured->count(),
-            'featured_slots_max' => $this->getMaxFeaturedSlots($latestSubscription->plan_type ?? 'basic'),
+            'featured_slots_max' => $this->getMaxFeaturedSlots($latestSubscription->plan?->slug ?? 'basic'),
             'hot_deals_used' => $hotDeals->count(),
-            'hot_deals_max' => $this->getMaxHotDeals($latestSubscription->plan_type ?? 'basic'),
+            'hot_deals_max' => $this->getMaxHotDeals($latestSubscription->plan?->slug ?? 'basic'),
         ]);
     }
 
@@ -322,11 +334,11 @@ class FeaturedProductController extends Controller
     private function getMaxFeaturedSlots($planType)
     {
         return match ($planType) {
-            'platinum' => 20,
-            'gold' => 10,
-            'silver' => 5,
-            'basic' => 2,
-            default => 2,
+            'platinum' => 3,
+            'gold' => 2,
+            'silver' => 1,
+            'basic' => 0,
+            default => 0,
         };
     }
 
@@ -336,11 +348,11 @@ class FeaturedProductController extends Controller
     private function getMaxHotDeals($planType)
     {
         return match ($planType) {
-            'platinum' => 15,
-            'gold' => 8,
-            'silver' => 4,
-            'basic' => 1,
-            default => 1,
+            'platinum' => 3,
+            'gold' => 1,
+            'silver' => 1,
+            'basic' => 0,
+            default => 0,
         };
     }
 }

@@ -256,31 +256,77 @@ function StoreOwnerDashboard() {
   const [productLimit, setProductLimit] = useState(0);
   const [planName, setPlanName] = useState("");
   const [verificationStatus, setVerificationStatus] = useState("");
+  const [subscriptionPlanStatus, setSubscriptionPlanStatus] =
+    useState("expired");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
+
+        // Fetch store info first
+        console.log("Fetching store data...");
+        const storeRes = await api.get("/api/my-store");
+        console.log("Store response:", storeRes.data);
+        const storeData = storeRes.data;
+        if (storeData) {
+          // Get plan name from active subscription if available, otherwise use subscription field
+          let plan = storeData.subscription || "Basic";
+          if (storeData.active_subscription?.plan_display_name) {
+            plan = storeData.active_subscription.plan_display_name;
+            setProductLimit(storeData.active_subscription.product_limit || 0);
+          }
+          // Capitalize first letter
+          plan = plan.charAt(0).toUpperCase() + plan.slice(1);
+          console.log("Setting plan name to:", plan);
+          setPlanName(plan);
+
+          // Determine subscription status: active if there's an active_subscription, otherwise check the field
+          const hasActiveSubscription =
+            storeData.active_subscription !== null &&
+            storeData.active_subscription !== undefined;
+          const status = hasActiveSubscription
+            ? "active"
+            : storeData.subscription_plan_status || "expired";
+          console.log(
+            "Setting subscription status to:",
+            status,
+            "hasActiveSubscription:",
+            hasActiveSubscription
+          );
+          setSubscriptionPlanStatus(status);
+
+          // Get verification status from store status
+          setVerificationStatus(storeData.status || "pending");
+        }
+
         // Fetch products to count active ones
+        console.log("Fetching products...");
         const productsRes = await api.get("/api/products");
+        console.log("Products response:", productsRes.data);
         const products = productsRes.data.data || [];
         const active = products.filter(
           (p: any) => p.status === "active"
         ).length;
+        console.log("Active products:", active);
         setActiveProducts(active);
 
-        // Fetch subscription to get plan limit
-        const subscriptionRes = await api.get("/api/subscription/current");
-        const subscription = subscriptionRes.data?.data;
-        if (subscription) {
-          setProductLimit(subscription.product_limit || 0);
-          setPlanName(subscription.plan_name || "");
-        }
-
-        // Get verification status from user object
-        if (user?.verification_status) {
-          setVerificationStatus(user.verification_status);
+        // Fetch subscription as backup to get product limit
+        try {
+          const subscriptionRes = await api.get("/api/subscription/current");
+          console.log("Subscription response:", subscriptionRes.data);
+          const subscription = subscriptionRes.data?.data;
+          if (subscription && subscription.product_limit) {
+            console.log(
+              "Setting product limit from subscription:",
+              subscription.product_limit
+            );
+            setProductLimit(subscription.product_limit);
+          }
+        } catch (error) {
+          // Subscription endpoint might fail, that's ok
+          console.log("Subscription fetch skipped:", error);
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -316,7 +362,12 @@ function StoreOwnerDashboard() {
           value={planName || "Loading..."}
           icon={CreditCard}
         />
-        <MetricCard title="Total Views" value={1248} icon={Store} change={18} />
+        <MetricCard
+          title="Subscription Status"
+          value={subscriptionPlanStatus === "active" ? "Active" : "Expired"}
+          icon={Clock}
+          // change={subscriptionPlanStatus === "active" ? undefined : 0}
+        />
         <MetricCard
           title="Verification Status"
           value={verificationStatus || "Pending"}

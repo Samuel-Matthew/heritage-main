@@ -14,6 +14,7 @@ use App\Http\Controllers\API\Seller\ProductController;
 use App\Http\Controllers\API\Seller\FeaturedProductController;
 use App\Http\Controllers\API\Seller\PromotionController;
 use App\Http\Controllers\API\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\API\Admin\SettingsController;
 
 // Include authentication routes (they will be prefixed with /api automatically)
 require __DIR__ . '/auth.php';
@@ -31,6 +32,10 @@ Route::get('category-counts', [\App\Http\Controllers\API\DisplayController::clas
 // Public subscription plans routes (no authentication required)
 Route::get('subscription-plans', [SubscriptionPlanController::class, 'index']);
 Route::get('subscription-plans/{plan}', [SubscriptionPlanController::class, 'show']);
+
+// Public settings routes (for getting site settings)
+Route::get('settings', [SettingsController::class, 'index']);
+Route::patch('settings', [SettingsController::class, 'update']);
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     $user = $request->user();
@@ -70,6 +75,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('subscription/upgrade', [SubscriptionController::class, 'storeUpgrade']);
     Route::get('subscription/current', [SubscriptionController::class, 'current']);
 
+    // Report routes
+    Route::post('stores/{store}/report', [\App\Http\Controllers\API\StoreReportController::class, 'store']);
+
     // Profile routes
     Route::put('profile', [\App\Http\Controllers\API\ProfileController::class, 'update']);
     Route::post('change-password', [\App\Http\Controllers\API\ProfileController::class, 'changePassword']);
@@ -103,6 +111,11 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::patch('stores/{store}/approve', [AdminStoreController::class, 'approve']);
     Route::patch('stores/{store}/reject', [AdminStoreController::class, 'reject']);
     Route::patch('stores/{store}/suspend', [AdminStoreController::class, 'suspend']);
+
+    // Store Reports routes
+    Route::get('reports', [\App\Http\Controllers\API\StoreReportController::class, 'index']);
+    Route::get('reports/{report}', [\App\Http\Controllers\API\StoreReportController::class, 'show']);
+    Route::patch('reports/{report}/status', [\App\Http\Controllers\API\StoreReportController::class, 'updateStatus']);
 
     // Subscription routes
     Route::get('subscriptions', [SubscriptionController::class, 'index']);

@@ -31,10 +31,12 @@ import {
   FileCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "process";
 
 // Create axios instance with CSRF support
 const apiClient = axios.create({
   baseURL: "http://localhost:8000",
+  // baseURL: env.VITE_API_BASE_URL,
   withCredentials: true,
   headers: {
     "X-Requested-With": "XMLHttpRequest",

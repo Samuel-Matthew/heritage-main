@@ -196,13 +196,31 @@ class DisplayController extends Controller
 
     /**
      * Get all verified/approved stores for public browsing (paginated)
+     * Excludes stores with basic subscription plan and expired subscriptions
      */
     public function allStores(Request $request)
     {
         try {
             $limit = $request->get('limit', 12);
 
+            // First, auto-update subscription_plan_status for any stores with expired subscriptions
+            \App\Models\Subscription::where('status', 'active')
+                ->where('ends_at', '<', now())
+                ->get()
+                ->each(function ($subscription) {
+                    $subscription->update(['status' => 'expired']);
+                    $subscription->store->update([
+                        'subscription' => 'basic',
+                        'subscription_plan_status' => 'expired',
+                    ]);
+                    $subscription->store->products()->update(['status' => 'suspended']);
+                });
+
             $stores = \App\Models\Store::where('status', 'approved')
+                ->where(function ($query) {
+                    // Show only stores with active subscriptions (not basic/expired)
+                    $query->where('subscription_plan_status', 'active');
+                })
                 ->with(['documents', 'products'])
                 ->withCount('products')
                 ->orderBy('created_at', 'desc')

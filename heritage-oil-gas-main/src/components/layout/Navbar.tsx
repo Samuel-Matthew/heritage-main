@@ -21,6 +21,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const categories = [
   { name: "Automotive Lubricants", icon: Droplets },
@@ -36,6 +38,13 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
+  const { settings, loading, error } = useSiteSettings();
+
+  // Debug logging
+  console.log("Settings:", settings);
+  console.log("Loading:", loading);
+  console.log("Error:", error);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -75,16 +84,34 @@ export function Navbar() {
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             {/* Desktop Logo */}
             <img
-              src="/images/Heritage_logo.png"
+              src={
+                settings?.logo
+                  ? `${import.meta.env.VITE_API_BASE_URL}/storage/${
+                      settings.logo
+                    }`
+                  : "/images/Heritage_logo.png"
+              }
               alt="Heritage Energy"
               className="hidden md:block w-32 h-32 mt-4 object-contain rounded-md"
+              onError={(e) => {
+                e.currentTarget.src = "/images/Heritage_logo.png";
+              }}
             />
 
             {/* Mobile Logo */}
             <img
-              src="/images/favicon-heritage.png"
+              src={
+                settings?.favicon
+                  ? `${import.meta.env.VITE_API_BASE_URL}/storage/${
+                      settings.favicon
+                    }`
+                  : "/images/favicon-heritage.png"
+              }
               alt="Heritage Energy Mobile"
               className="block md:hidden w-12 h-12 object-contain rounded-md"
+              onError={(e) => {
+                e.currentTarget.src = "/images/favicon-heritage.png";
+              }}
             />
           </Link>
 
@@ -120,15 +147,36 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link to="/login">Sign In</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/register">Create Account</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/seller/register">Become a Seller</Link>
-                </DropdownMenuItem>
+                {isAuthenticated && user ? (
+                  <>
+                    <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground">
+                      {user.name}
+                    </div>
+                    {/* <DropdownMenuItem asChild>
+                      <Link to="/profile">Profile</Link>
+                    </DropdownMenuItem> */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        logout();
+                        navigate("/");
+                      }}
+                    >
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/login">Sign In</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/register">Create Account</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/seller/register">Become a Seller</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\StoreDocument;
 use App\Models\User;
+use App\Notifications\StoreRegistrationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +45,7 @@ class SellerRegistrationController extends Controller
             'contact_person' => 'required|string|max:255',
 
             // Business Details
-            'business_lines' => 'required|array|min:1', 
+            'business_lines' => 'required|array|min:1',
             'business_lines.*' => 'string',
             'product_line' => 'required|string|min:3',
             'states' => 'required|array|min:1',
@@ -126,6 +127,9 @@ class SellerRegistrationController extends Controller
             }
 
             DB::commit();
+
+            // Send registration confirmation email
+            $user->notify(new StoreRegistrationNotification($store));
 
             return response()->json([
                 'message' => 'Seller registration submitted successfully',

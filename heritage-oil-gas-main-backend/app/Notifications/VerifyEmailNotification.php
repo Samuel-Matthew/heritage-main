@@ -2,12 +2,19 @@
 
 namespace App\Notifications;
 
-use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends VerifyEmail
+class VerifyEmailNotification extends Notification
 {
+    /**
+     * Get the notification's delivery channels.
+     */
+    public function via($notifiable): array
+    {
+        return ['mail'];
+    }
+
     /**
      * Get the mail representation of the notification.
      */
@@ -22,7 +29,8 @@ class VerifyEmailNotification extends VerifyEmail
             ->line('Please verify your email address to activate your account.')
             ->action('Verify Email Address', $verificationUrl)
             ->line('If you did not create this account, no further action is required.')
-            ->line('This verification link will expire in 60 minutes.');
+            ->line('This verification link will expire in 10 minutes.')
+            ->salutation('Best regards, Heritage Oil & Gas Team');
     }
 
     /**
@@ -30,7 +38,7 @@ class VerifyEmailNotification extends VerifyEmail
      */
     protected function verificationUrl($notifiable): string
     {
-        $frontendUrl = config('app.frontend_url') ?? 'http://localhost:8080';
+        $frontendUrl = config('app.frontend_url');
         $id = $notifiable->getKey();
         $hash = sha1($notifiable->getEmailForVerification());
 

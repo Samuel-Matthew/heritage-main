@@ -18,6 +18,7 @@ class Subscription extends Model
         'status',
         'activated_by',
         'subscription_code',
+        'rejection_reason',
     ];
 
     protected $casts = [
