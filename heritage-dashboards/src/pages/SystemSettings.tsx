@@ -226,6 +226,21 @@ export default function SystemSettings() {
       if (data.success) {
         toast.success("Settings saved successfully!");
         setLogoFile(null);
+        setFaviconFile(null);
+
+        // Update favicon in browser if a new one was uploaded
+        if (faviconFile && data.data?.favicon) {
+          const faviconLink = document.querySelector(
+            'link[rel="icon"]'
+          ) as HTMLLinkElement;
+          if (faviconLink) {
+            const newFaviconUrl = `${API_URL.replace("/api", "")}/storage/${
+              data.data.favicon
+            }?t=${Date.now()}`;
+            faviconLink.href = newFaviconUrl;
+          }
+        }
+
         // Refresh settings to get updates from server
         fetchSettings();
       }
@@ -239,11 +254,11 @@ export default function SystemSettings() {
     }
   };
 
-  const handleReset = () => {
-    fetchSettings();
-    setLogoFile(null);
-    toast.info("Settings reset to saved values");
-  };
+  // const handleReset = () => {
+  //   fetchSettings();
+  //   setLogoFile(null);
+  //   toast.info("Settings reset to saved values");
+  // };
 
   if (fetchingSettings) {
     return (
@@ -266,14 +281,14 @@ export default function SystemSettings() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             variant="outline"
             onClick={handleReset}
             disabled={loading || fetchingSettings}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Reset
-          </Button>
+          </Button> */}
           <Button
             variant="secondary"
             onClick={handleSave}
@@ -294,7 +309,7 @@ export default function SystemSettings() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* General Settings */}
         <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
           <div className="flex items-center gap-3 mb-6">

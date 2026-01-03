@@ -61,7 +61,7 @@ const StoreProfile = () => {
         // Fetch store products using the store ID
         const productsResponse = await api.get(`/api/stores/${id}/products`);
 
-        console.log("API Response:", productsResponse.data);
+        // console.log("API Response:", productsResponse.data);
 
         // Handle both paginated and non-paginated responses
         const productsData =
@@ -72,7 +72,7 @@ const StoreProfile = () => {
           ? [productsData]
           : [];
 
-        console.log("Products List:", productsList);
+        // console.log("Products List:", productsList);
 
         if (!productsList || productsList.length === 0) {
           setError("No products found for this store");
@@ -82,10 +82,10 @@ const StoreProfile = () => {
 
         // Get store data from the first product
         const firstProduct = productsList[0];
-        console.log("First Product:", firstProduct);
+        // console.log("First Product:", firstProduct);
 
         if (!firstProduct.store) {
-          console.error("Store not found in product:", firstProduct);
+          // console.error("Store not found in product:", firstProduct);
           setError("Store information not found");
           setIsLoading(false);
           return;
@@ -101,12 +101,12 @@ const StoreProfile = () => {
           logo = getImageUrl(storeInfo.company_logo);
         }
 
-        console.log(
-          "Store Logo:",
-          logo,
-          "From company_logo:",
-          storeInfo.company_logo
-        );
+        // console.log(
+        //   "Store Logo:",
+        //   logo,
+        //   "From company_logo:",
+        //   storeInfo.company_logo
+        // );
 
         setStoreData({
           id: storeInfo.id?.toString(),
@@ -154,7 +154,7 @@ const StoreProfile = () => {
 
         setStoreProducts(products);
       } catch (error: any) {
-        console.error("Error fetching store data:", error);
+        // console.error("Error fetching store data:", error);
         setError(
           error?.response?.status === 404
             ? "Store not found"

@@ -81,7 +81,7 @@ export default function Wholesale() {
 
         setProducts(items);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        // console.error("Error fetching products:", error);
         toast.error("Failed to load featured products");
         setProducts([]);
       } finally {

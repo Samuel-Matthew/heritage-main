@@ -103,7 +103,7 @@ export default function FeaturedAndDeals() {
       setProducts(productsRes.data.data || productsRes.data);
       setData(dataRes.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      // console.error("Error fetching data:", error);
       toast.error("Failed to load data");
     } finally {
       setLoading(false);

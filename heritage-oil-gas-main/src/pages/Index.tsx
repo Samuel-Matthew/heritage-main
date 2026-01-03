@@ -27,22 +27,22 @@ import api, { getImageUrl } from "@/lib/api";
 import { toast } from "sonner";
 
 // Mock data
-const featuredProducts: Product[] = [
-  {
-    id: "1",
-    name: "Shell Helix Ultra 5W-40 Fully Synthetic Motor Oil - 4L",
-    price: 28500,
-    wholesalePrice: 24000,
-    image:
-      "https://images.unsplash.com/photo-1635784063388-1ff609731d7d?w=400&h=400&fit=crop",
-    category: "Automotive Lubricants",
-    store: { name: "PetroChem Supplies", id: "1" },
-    rating: 4.8,
-    reviews: 156,
-    inStock: true,
-    minOrder: 5,
-  },
-];
+// const featuredProducts: Product[] = [
+//   {
+//     id: "1",
+//     name: "Shell Helix Ultra 5W-40 Fully Synthetic Motor Oil - 4L",
+//     price: 28500,
+//     wholesalePrice: 24000,
+//     image:
+//       "https://images.unsplash.com/photo-1635784063388-1ff609731d7d?w=400&h=400&fit=crop",
+//     category: "Automotive Lubricants",
+//     store: { name: "PetroChem Supplies", id: "1" },
+//     rating: 4.8,
+//     reviews: 156,
+//     inStock: true,
+//     minOrder: 5,
+//   },
+// ];
 
 const topStores: Store[] = [
   {
@@ -127,8 +127,8 @@ const Index = () => {
           showcaseResponse.data.featured_products?.map((fp: any) => ({
             id: fp.product?.id?.toString() || fp.id?.toString(),
             name: fp.product?.name || "N/A",
-            price: fp.product?.new_price || 0,
-            wholesalePrice: fp.product?.old_price,
+            // price: fp.product?.new_price || 0,
+            // wholesalePrice: fp.product?.old_price,
             image: getImageUrl(
               fp.product?.images?.[0]?.image_path ||
                 fp.product?.images?.[0]?.path
@@ -148,7 +148,7 @@ const Index = () => {
         // Fetch top stores with accurate product counts
         try {
           const storesResponse = await api.get("/api/stores?limit=50");
-          console.log("Stores API response:", storesResponse.data);
+          // console.log("Stores API response:", storesResponse.data);
 
           // Handle Laravel paginated response structure
           const storesData = storesResponse.data.data || storesResponse.data;
@@ -193,11 +193,11 @@ const Index = () => {
 
           setTopStores(topStoresList);
         } catch (error) {
-          console.error("Error fetching top stores:", error);
+          // console.error("Error fetching top stores:", error);
           setTopStores([]);
         }
       } catch (error) {
-        console.error("Error fetching homepage data:", error);
+        // console.error("Error fetching homepage data:", error);
         toast.error("Failed to load homepage data");
       } finally {
         setIsLoading(false);

@@ -174,7 +174,7 @@ const ProductDetail = () => {
 
         setRelatedProds(transformed);
       } catch (err) {
-        console.error("Error fetching product:", err);
+        // console.error("Error fetching product:", err);
         setError("Failed to load product details");
         toast.error("Failed to load product details");
       } finally {
@@ -240,7 +240,7 @@ const ProductDetail = () => {
         await navigator.share(shareData);
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          console.error("Error sharing:", err);
+          // console.error("Error sharing:", err);
         }
       }
     } else {
@@ -249,7 +249,7 @@ const ProductDetail = () => {
         await navigator.clipboard.writeText(window.location.href);
         toast.success("Product link copied to clipboard!");
       } catch (err) {
-        console.error("Error copying to clipboard:", err);
+        // console.error("Error copying to clipboard:", err);
         toast.error("Failed to share product");
       }
     }

@@ -42,17 +42,19 @@ export function Navbar() {
   const { settings, loading, error } = useSiteSettings();
 
   // Debug logging
-  console.log("Settings:", settings);
-  console.log("Loading:", loading);
-  console.log("Error:", error);
+  // console.log("Settings:", settings);
+  // console.log("Loading:", loading);
+  // console.log("Error:", error);
 
   const isActive = (path: string) => location.pathname === path;
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+    const query = searchQuery.trim();
+    if (query.length > 0) {
+      navigate(`/products?q=${encodeURIComponent(query)}`);
       setSearchQuery("");
+      setMobileMenuOpen(false);
     }
   };
 

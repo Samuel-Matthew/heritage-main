@@ -76,7 +76,7 @@ export default function Documents() {
     } catch (error: any) {
       const message =
         error.response?.data?.message || "Failed to load your documents";
-      console.error("Error fetching documents:", message);
+      // console.error("Error fetching documents:", message);
       // Only show error toast if it's not a 404 (store not found)
       if (error.response?.status !== 404) {
         toast.error(message);

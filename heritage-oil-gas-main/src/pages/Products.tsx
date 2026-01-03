@@ -46,12 +46,22 @@ const Products = () => {
         const categoryNames = Object.keys(response.data).sort();
         setAvailableCategories(categoryNames);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        // console.error("Error fetching categories:", error);
       }
     };
 
     fetchCategories();
   }, []);
+
+  // Update searchQuery when URL parameters change
+  useEffect(() => {
+    const qParam = searchParams.get("q");
+    if (qParam) {
+      setSearchQuery(decodeURIComponent(qParam));
+    } else {
+      setSearchQuery("");
+    }
+  }, [searchParams]);
 
   // Fetch products from API on mount and when search changes
   useEffect(() => {
@@ -77,8 +87,8 @@ const Products = () => {
           name: product.name,
           category: product.category?.name || "Uncategorized",
           description: product.description,
-          price: product.new_price || 0,
-          wholesalePrice: product.old_price,
+          // price: product.new_price || 0,
+          // wholesalePrice: product.old_price,
           image: getImageUrl(
             product.images?.[0]?.image_path || product.images?.[0]?.path
           ),

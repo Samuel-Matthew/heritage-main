@@ -67,7 +67,7 @@ const Stores = () => {
         const verifiedStores = stores.filter((s) => s.verified);
         setAllStores(verifiedStores);
       } catch (error) {
-        console.error("Error fetching stores:", error);
+        // console.error("Error fetching stores:", error);
         toast.error("Failed to load stores");
         setAllStores([]);
       } finally {

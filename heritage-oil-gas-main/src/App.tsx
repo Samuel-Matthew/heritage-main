@@ -42,7 +42,9 @@ const App = () => {
         {settings?.favicon && (
           <link
             rel="icon"
-            href={`http://localhost:8000/storage/${settings.favicon}`}
+            href={`http://localhost:8000/storage/${
+              settings.favicon
+            }?t=${Date.now()}`}
           />
         )}
       </Helmet>

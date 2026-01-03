@@ -40,7 +40,7 @@ const Login = ({ isSeller = false }: LoginProps) => {
     const fromRegistration = urlParams.get("from") === "register";
 
     if (fromRegistration) {
-      console.log("[LOGIN] Clearing old session cookies...");
+      // console.log("[LOGIN] Clearing old session cookies...");
       // Clear session storage and old cookies
       sessionStorage.clear();
 
@@ -68,7 +68,7 @@ const Login = ({ isSeller = false }: LoginProps) => {
         "LARAVEL_SESSION",
         "remember_me",
       ].forEach((cookie) => clearCookie(cookie));
-      console.log("[LOGIN] Old session cookies cleared");
+      // console.log("[LOGIN] Old session cookies cleared");
     }
   }, []);
 
@@ -150,21 +150,21 @@ const Login = ({ isSeller = false }: LoginProps) => {
       // Redirect based on role
       const redirectUrl = getRoleBasedRedirect(userData.role);
 
-      console.log("Login redirect:", {
-        redirectUrl,
-        startsWithHttp: redirectUrl.startsWith("http"),
-      });
+      // console.log("Login redirect:", {
+      //   redirectUrl,
+      //   startsWithHttp: redirectUrl.startsWith("http"),
+      // });
 
       // Use window.location for cross-domain redirects, navigate for same-domain
       if (redirectUrl.startsWith("http")) {
-        console.log("Using window.location.href for cross-domain redirect");
+        // console.log("Using window.location.href for cross-domain redirect");
         window.location.href = redirectUrl;
       } else {
-        console.log("Using navigate for same-domain redirect");
+        // console.log("Using navigate for same-domain redirect");
         navigate(redirectUrl, { replace: true });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
 
       // Handle rate limit error (HTTP 429)
       if (error.status === 429 || error.isRateLimited) {

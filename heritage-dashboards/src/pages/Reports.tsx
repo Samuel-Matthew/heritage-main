@@ -101,14 +101,14 @@ export default function Reports() {
       const planData = planRes.data.data || storesByPlan;
       setStoresData(planData);
 
-      console.log("Report data loaded:", {
-        activeStores,
-        totalProducts,
-        totalUsers,
-        dateRange,
-      });
+      // console.log("Report data loaded:", {
+      //   activeStores,
+      //   totalProducts,
+      //   totalUsers,
+      //   dateRange,
+      // });
     } catch (error: any) {
-      console.error("Failed to fetch report data:", error);
+      // console.error("Failed to fetch report data:", error);
       toast.error("Failed to load report data");
     } finally {
       setIsLoading(false);
@@ -193,7 +193,7 @@ export default function Reports() {
 
       toast.success("CSV report exported successfully");
     } catch (error) {
-      console.error("Failed to export CSV:", error);
+      // console.error("Failed to export CSV:", error);
       toast.error("Failed to export CSV");
     }
   };
@@ -251,7 +251,7 @@ export default function Reports() {
 
       toast.success("Report exported successfully");
     } catch (error) {
-      console.error("Failed to export report:", error);
+      // console.error("Failed to export report:", error);
       toast.error("Failed to export report");
     }
   };

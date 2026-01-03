@@ -759,14 +759,14 @@ export default function Products() {
           setProductFeaturedMap(featuredMap);
           setProductHotDealMap(hotDealMap);
         } catch (err) {
-          console.error("Error refreshing featured and deals:", err);
+          // console.error("Error refreshing featured and deals:", err);
         }
       }
     } catch (error: any) {
       const message =
         error.response?.data?.message || "Failed to update product";
       toast.error(message);
-      console.error("Product update error:", error);
+      // console.error("Product update error:", error);
     }
   };
 
@@ -1001,7 +1001,7 @@ export default function Products() {
                 filteredProducts.map((product) => {
                   // Safety check: ensure product has required fields
                   if (!product || !product.id) {
-                    console.warn("Invalid product:", product);
+                    // console.warn("Invalid product:", product);
                     return null;
                   }
                   return (

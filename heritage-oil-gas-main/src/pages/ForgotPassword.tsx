@@ -75,12 +75,12 @@ const ForgotPassword = () => {
         setEmail("");
         setEmailError(null);
         toast({
-          title: "✅ Check Your Email",
+          title: "Check Your Email",
           description: "Password reset link has been sent to your email",
         });
       }
     } catch (error: any) {
-      console.error("Forgot password error:", error);
+      // console.error("Forgot password error:", error);
 
       // Handle rate limit error (HTTP 429)
       if (error.status === 429 || error.isRateLimited) {

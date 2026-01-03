@@ -192,7 +192,7 @@ function AdminDashboard() {
         totalProducts,
       });
     } catch (error) {
-      console.error("Failed to fetch admin metrics:", error);
+      // console.error("Failed to fetch admin metrics:", error);
     } finally {
       setIsLoading(false);
     }
@@ -266,9 +266,9 @@ function StoreOwnerDashboard() {
         setIsLoading(true);
 
         // Fetch store info first
-        console.log("Fetching store data...");
+        // console.log("Fetching store data...");
         const storeRes = await api.get("/api/my-store");
-        console.log("Store response:", storeRes.data);
+        // console.log("Store response:", storeRes.data);
         const storeData = storeRes.data;
         if (storeData) {
           // Get plan name from active subscription if available, otherwise use subscription field
@@ -279,7 +279,7 @@ function StoreOwnerDashboard() {
           }
           // Capitalize first letter
           plan = plan.charAt(0).toUpperCase() + plan.slice(1);
-          console.log("Setting plan name to:", plan);
+          // console.log("Setting plan name to:", plan);
           setPlanName(plan);
 
           // Determine subscription status: active if there's an active_subscription, otherwise check the field
@@ -289,12 +289,12 @@ function StoreOwnerDashboard() {
           const status = hasActiveSubscription
             ? "active"
             : storeData.subscription_plan_status || "expired";
-          console.log(
-            "Setting subscription status to:",
-            status,
-            "hasActiveSubscription:",
-            hasActiveSubscription
-          );
+          // console.log(
+          //   "Setting subscription status to:",
+          //   status,
+          //   "hasActiveSubscription:",
+          //   hasActiveSubscription
+          // );
           setSubscriptionPlanStatus(status);
 
           // Get verification status from store status
@@ -302,34 +302,34 @@ function StoreOwnerDashboard() {
         }
 
         // Fetch products to count active ones
-        console.log("Fetching products...");
+        // console.log("Fetching products...");
         const productsRes = await api.get("/api/products");
-        console.log("Products response:", productsRes.data);
+        // console.log("Products response:", productsRes.data);
         const products = productsRes.data.data || [];
         const active = products.filter(
           (p: any) => p.status === "active"
         ).length;
-        console.log("Active products:", active);
+        // console.log("Active products:", active);
         setActiveProducts(active);
 
         // Fetch subscription as backup to get product limit
         try {
           const subscriptionRes = await api.get("/api/subscription/current");
-          console.log("Subscription response:", subscriptionRes.data);
+          // console.log("Subscription response:", subscriptionRes.data);
           const subscription = subscriptionRes.data?.data;
           if (subscription && subscription.product_limit) {
-            console.log(
-              "Setting product limit from subscription:",
-              subscription.product_limit
-            );
+            // console.log(
+            //   "Setting product limit from subscription:",
+            //   subscription.product_limit
+            // );
             setProductLimit(subscription.product_limit);
           }
         } catch (error) {
           // Subscription endpoint might fail, that's ok
-          console.log("Subscription fetch skipped:", error);
+          // console.log("Subscription fetch skipped:", error);
         }
       } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
+        // console.error("Failed to fetch dashboard data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -409,7 +409,7 @@ function StoreOwnerDashboard() {
       </div>
 
       {/* Monthly Activity */}
-      <MonthlyActivityChart />
+      {/* <MonthlyActivityChart /> */}
     </div>
   );
 }

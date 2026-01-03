@@ -90,7 +90,7 @@ export default function StoreReports() {
 
       setReports(reportsList);
     } catch (error: any) {
-      console.error("Failed to fetch reports:", error);
+      // console.error("Failed to fetch reports:", error);
       toast.error("Failed to load reports");
     } finally {
       setIsLoading(false);
@@ -118,7 +118,7 @@ export default function StoreReports() {
       setIsDetailDialogOpen(false);
       fetchReports();
     } catch (error: any) {
-      console.error("Failed to update report:", error);
+      // console.error("Failed to update report:", error);
       toast.error("Failed to update report");
     } finally {
       setIsUpdating(false);

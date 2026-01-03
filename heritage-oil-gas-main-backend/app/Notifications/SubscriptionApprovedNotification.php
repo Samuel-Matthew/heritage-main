@@ -37,7 +37,7 @@ class SubscriptionApprovedNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $dashboardUrl = config('app.dashboard_url', 'http://localhost:5174');
+        $dashboardUrl = config('app.dashboard_url');
         $planName = $this->subscription->plan->name;
         $startsAt = $this->subscription->starts_at->format('M d, Y');
         $endsAt = $this->subscription->ends_at->format('M d, Y');

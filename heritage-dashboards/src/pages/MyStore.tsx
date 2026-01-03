@@ -147,7 +147,7 @@ export default function MyStore() {
       if (error.response?.status !== 404) {
         toast.error(message);
       }
-      console.error("Error fetching store:", message);
+      // console.error("Error fetching store:", message);
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +176,7 @@ export default function MyStore() {
     } catch (error: any) {
       const message = error.response?.data?.message || "Failed to update store";
       toast.error(message);
-      console.error("Error saving store:", message);
+      // console.error("Error saving store:", message);
     } finally {
       setIsSaving(false);
     }
@@ -251,7 +251,7 @@ export default function MyStore() {
     } catch (error: any) {
       const message = error.response?.data?.message || "Failed to upload logo";
       toast.error(message);
-      console.error("Error uploading logo:", message);
+      // console.error("Error uploading logo:", message);
     } finally {
       setIsUploadingLogo(false);
     }

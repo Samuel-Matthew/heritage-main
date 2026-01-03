@@ -131,7 +131,7 @@ export default function StoreVerification() {
       setStore(response.data);
     } catch (error) {
       toast.error("Failed to load store details");
-      console.error(error);
+      // console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +152,7 @@ export default function StoreVerification() {
       fetchStore();
     } catch (error) {
       toast.error("Failed to approve document");
-      console.error(error);
+      // console.error(error);
     } finally {
       setIsActionLoading(false);
     }
@@ -174,7 +174,7 @@ export default function StoreVerification() {
       fetchStore();
     } catch (error) {
       toast.error("Failed to reject document");
-      console.error(error);
+      // console.error(error);
     } finally {
       setIsActionLoading(false);
     }
@@ -191,10 +191,10 @@ export default function StoreVerification() {
       const message =
         error.response?.data?.message || "Failed to approve store";
       toast.error(message);
-      console.error(
-        "Store approve error:",
-        error.response?.data || error.message
-      );
+      // console.error(
+      //   "Store approve error:",
+      //   error.response?.data || error.message
+      // );
     } finally {
       setIsActionLoading(false);
     }
@@ -216,10 +216,10 @@ export default function StoreVerification() {
     } catch (error: any) {
       const message = error.response?.data?.message || "Failed to reject store";
       toast.error(message);
-      console.error(
-        "Store reject error:",
-        error.response?.data || error.message
-      );
+      // console.error(
+      //   "Store reject error:",
+      //   error.response?.data || error.message
+      // );
     } finally {
       setIsActionLoading(false);
     }

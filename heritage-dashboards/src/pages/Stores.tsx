@@ -77,7 +77,7 @@ export default function Stores() {
         },
       });
 
-      console.log("Stores API Response:", response.data); // Debug log
+      // console.log("Stores API Response:", response.data); // Debug log
 
       if (response.data.data) {
         setStores(response.data.data);
@@ -87,15 +87,15 @@ export default function Stores() {
         ] as string[];
         setStates(uniqueStates);
       } else {
-        console.warn("No data found in response:", response.data);
+        // console.warn("No data found in response:", response.data);
         setStores([]);
       }
     } catch (error: any) {
       toast.error("Failed to fetch stores");
-      console.error(
-        "Error fetching stores:",
-        error.response?.data || error.message
-      );
+      // console.error(
+      //   "Error fetching stores:",
+      //   error.response?.data || error.message
+      // );
       setStores([]);
     } finally {
       setIsLoading(false);
@@ -115,7 +115,7 @@ export default function Stores() {
       const message =
         error.response?.data?.message || "Failed to approve store";
       toast.error(message);
-      console.error("Approve error:", error.response?.data || error.message);
+      // console.error("Approve error:", error.response?.data || error.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -139,7 +139,7 @@ export default function Stores() {
     } catch (error: any) {
       const message = error.response?.data?.message || "Failed to reject store";
       toast.error(message);
-      console.error("Reject error:", error.response?.data || error.message);
+      // console.error("Reject error:", error.response?.data || error.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -164,7 +164,7 @@ export default function Stores() {
       const message =
         error.response?.data?.message || "Failed to suspend store";
       toast.error(message);
-      console.error("Suspend error:", error.response?.data || error.message);
+      // console.error("Suspend error:", error.response?.data || error.message);
     } finally {
       setIsActionLoading(false);
     }

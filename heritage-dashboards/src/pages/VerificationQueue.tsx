@@ -42,7 +42,7 @@ export default function VerificationQueue() {
       }
     } catch (error) {
       toast.error("Failed to fetch pending stores");
-      console.error("Error fetching stores:", error);
+      // console.error("Error fetching stores:", error);
     } finally {
       setIsLoading(false);
     }

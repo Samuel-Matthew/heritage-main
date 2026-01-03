@@ -41,18 +41,21 @@ export default function VerifyEmail() {
           return;
         }
 
-        console.log("[VERIFY] Verifying email with:", { id, hash });
+        // console.log("[VERIFY] Verifying email with:", { id, hash });
 
         // Call the backend verification endpoint
         const response = await api.get(`/api/verify-email/${id}/${hash}`);
 
-        console.log("[VERIFY] Verification response:", response);
+        // console.log("[VERIFY] Verification response:", response);
 
         setIsSuccess(true);
         setShowSuccessModal(true);
-        toast.success("Email verified successfully!");
+        toast({
+          title: "Success",
+          description: "Email verified successfully!",
+        });
       } catch (err: any) {
-        console.error("[VERIFY] Verification error:", err);
+        // console.error("[VERIFY] Verification error:", err);
 
         if (err.response?.status === 401) {
           setError("Session expired. Please log in first.");
@@ -64,7 +67,11 @@ export default function VerifyEmail() {
           );
         }
 
-        toast.error("Verification failed");
+        toast({
+          title: "Error",
+          description: "Verification failed",
+          variant: "destructive",
+        });
       } finally {
         setIsVerifying(false);
       }

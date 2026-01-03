@@ -73,13 +73,13 @@ export default function Categories() {
       setIsLoading(true);
       const response = await api.get("/api/admin/categories");
       setCategories(response.data.data || []);
-      console.log("Categories loaded:", response.data.data);
+      // console.log("Categories loaded:", response.data.data);
     } catch (error: any) {
-      toast.error("Failed to fetch categories");
-      console.error(
-        "Error fetching categories:",
-        error.response?.data || error.message
-      );
+      // toast.error("Failed to fetch categories");
+      // console.error(
+      //   "Error fetching categories:",
+      //   error.response?.data || error.message
+      // );
     } finally {
       setIsLoading(false);
     }
@@ -126,10 +126,10 @@ export default function Categories() {
       const message =
         error.response?.data?.message || "Failed to save category";
       toast.error(message);
-      console.error(
-        "Error saving category:",
-        error.response?.data || error.message
-      );
+      // console.error(
+      //   "Error saving category:",
+      //   error.response?.data || error.message
+      // );
     } finally {
       setIsSaving(false);
       setIsDialogOpen(false);
@@ -157,10 +157,10 @@ export default function Categories() {
       const message =
         error.response?.data?.message || "Failed to delete category";
       toast.error(message);
-      console.error(
-        "Error deleting category:",
-        error.response?.data || error.message
-      );
+      // console.error(
+      //   "Error deleting category:",
+      //   error.response?.data || error.message
+      // );
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

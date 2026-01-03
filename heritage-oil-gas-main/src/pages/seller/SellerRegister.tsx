@@ -31,12 +31,10 @@ import {
   FileCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { env } from "process";
 
 // Create axios instance with CSRF support
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000",
-  // baseURL: env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000",
   withCredentials: true,
   headers: {
     "X-Requested-With": "XMLHttpRequest",
@@ -278,14 +276,14 @@ const SellerRegister = () => {
       });
 
       // Debug logging - show all formData entries
-      console.log("FormData entries:");
+      // console.log("FormData entries:");
       for (let [key, value] of formData.entries()) {
-        console.log(
-          `${key}:`,
-          value instanceof File
-            ? `File: ${value.name} (${value.size} bytes)`
-            : value
-        );
+        // console.log(
+        //   `${key}:`,
+        //   value instanceof File
+        //     ? `File: ${value.name} (${value.size} bytes)`
+        //     : value
+        // );
       }
 
       const response = await apiClient.post("/api/seller/register", formData, {
@@ -303,12 +301,12 @@ const SellerRegister = () => {
         error?.response?.data?.message || "Failed to submit application";
       const errors = error?.response?.data?.errors;
 
-      console.error("Registration Error Full Response:", error?.response?.data);
-      console.error("Registration Error:", {
-        status: error?.response?.status,
-        data: error?.response?.data,
-        errors,
-      });
+      // console.error("Registration Error Full Response:", error?.response?.data);
+      // console.error("Registration Error:", {
+      //   status: error?.response?.status,
+      //   data: error?.response?.data,
+      //   errors,
+      // });
 
       toast.error(errorMessage);
 
@@ -318,7 +316,7 @@ const SellerRegister = () => {
             ? messages.join(", ")
             : messages;
           toast.error(`${field}: ${fieldMessages}`);
-          console.error(`${field}:`, messages);
+          // console.error(`${field}:`, messages);
         });
       }
     } finally {

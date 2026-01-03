@@ -127,20 +127,20 @@ const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log("Fetching CSRF token...");
+      // console.log("Fetching CSRF token...");
       await api.get("/sanctum/csrf-cookie");
 
       // Wait a moment for the cookie to be set
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      console.log("CSRF token fetched successfully");
-      console.log("Available cookies:", document.cookie);
+      // console.log("CSRF token fetched successfully");
+      // console.log("Available cookies:", document.cookie);
 
-      console.log("Submitting registration...", {
-        name: `${form.firstName} ${form.lastName}`,
-        email: form.email,
-        phone: form.phone,
-      });
+      // console.log("Submitting registration...", {
+      //   name: `${form.firstName} ${form.lastName}`,
+      //   email: form.email,
+      //   phone: form.phone,
+      // });
 
       const response = await api.post("/api/register", {
         name: `${form.firstName} ${form.lastName}`,
@@ -150,13 +150,13 @@ const Register: React.FC = () => {
         password_confirmation: form.password_confirmation,
       });
 
-      console.log("Registration response status:", response.status);
-      console.log("Registration response data:", response.data);
-      console.log("Full response object:", response);
+      // console.log("Registration response status:", response.status);
+      // console.log("Registration response data:", response.data);
+      // console.log("Full response object:", response);
 
       if (response.status === 200 && response.data?.user) {
         // Clear browser cache and cookies to prevent stale responses
-        console.log("[REGISTER] Clearing browser cache and storage...");
+        // console.log("[REGISTER] Clearing browser cache and storage...");
 
         // Clear sessionStorage and localStorage
         sessionStorage.clear();
@@ -201,7 +201,7 @@ const Register: React.FC = () => {
           }
         });
 
-        console.log("[REGISTER] Cache and cookies cleared successfully");
+        // console.log("[REGISTER] Cache and cookies cleared successfully");
 
         // Show verification modal instead of redirecting
         setRegisteredEmail(form.email);
@@ -211,16 +211,16 @@ const Register: React.FC = () => {
           "Account created! Check your email to verify your account."
         );
       } else {
-        console.warn("Unexpected response status or missing user data");
+        // console.warn("Unexpected response status or missing user data");
         toast.error(
           "Registration may have failed - please check your email and try logging in"
         );
         navigate("/login");
       }
     } catch (error: any) {
-      console.error("Registration error:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
+      // console.error("Registration error:", error);
+      // console.error("Error response:", error.response?.data);
+      // console.error("Error status:", error.response?.status);
 
       // Handle rate limit error (HTTP 429)
       if (error.status === 429 || error.isRateLimited) {
@@ -244,7 +244,7 @@ const Register: React.FC = () => {
       // Handle validation errors (422)
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
-        console.log("Validation errors found:", errors);
+        // console.log("Validation errors found:", errors);
 
         // Check for email already exists error
         if (errors.email) {
@@ -252,7 +252,7 @@ const Register: React.FC = () => {
             ? errors.email
             : [errors.email];
           const emailError = emailErrors[0];
-          console.log("Email error detected:", emailError);
+          // console.log("Email error detected:", emailError);
 
           if (
             emailError?.toLowerCase().includes("already") ||
@@ -286,7 +286,7 @@ const Register: React.FC = () => {
           error.response.data?.error ||
           "Internal server error";
         toast.error("Server error: " + errorMsg);
-        console.error("Server error details:", error.response.data);
+        // console.error("Server error details:", error.response.data);
       } else if (error.response?.status === 419) {
         toast.error("CSRF token mismatch - please try again");
       } else if (error.response?.status === 422) {

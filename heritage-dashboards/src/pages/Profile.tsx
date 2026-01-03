@@ -77,7 +77,7 @@ export default function Profile() {
       const message =
         error.response?.data?.message || "Failed to update profile";
       toast.error(message);
-      console.error("Profile update error:", error);
+      // console.error("Profile update error:", error);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -118,7 +118,7 @@ export default function Profile() {
       const message =
         error.response?.data?.message || "Failed to change password";
       toast.error(message);
-      console.error("Password change error:", error);
+      // console.error("Password change error:", error);
     } finally {
       setIsLoadingPassword(false);
     }
@@ -183,7 +183,7 @@ export default function Profile() {
       const message =
         error.response?.data?.message || "Failed to upload profile image";
       toast.error(message);
-      console.error("Image upload error:", error);
+      // console.error("Image upload error:", error);
     } finally {
       setIsLoadingImage(false);
     }

@@ -39,7 +39,7 @@ class StoreVerificationNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $dashboardUrl = config('app.dashboard_url', 'http://localhost:5174');
+        $dashboardUrl = config('app.dashboard_url');
 
         if ($this->approved) {
             return (new MailMessage)
@@ -55,8 +55,9 @@ class StoreVerificationNotification extends Notification
                 ->action('Access Your Dashboard', $dashboardUrl . '/seller/dashboard')
                 ->line('')
                 ->line('Thank you for being part of the Heritage Energy marketplace!')
-                ->line('Best regards,')
-                ->line('Heritage Energy Team');
+                // ->line('Best regards,')
+                // ->line('Heritage Energy Team')
+                ;
         } else {
             return (new MailMessage)
                 ->subject('Store Verification Update - Heritage Oil & Gas')
@@ -69,10 +70,11 @@ class StoreVerificationNotification extends Notification
                 ->line($this->store->rejection_reason ?? 'Please contact our support team for more information.')
                 ->line('')
                 ->line('You can reapply after addressing the issues mentioned above. Our support team is here to help!')
-                ->action('Contact Support', 'http://localhost:5173/contact')
+                ->action('Contact Support', 'mailto:support@heritageenergyglobal.com')
                 ->line('')
-                ->line('Best regards,')
-                ->line('Heritage Energy Team');
+                // ->line('Best regards,')
+                // ->line('Heritage Energy Team')
+                ;
         }
     }
 

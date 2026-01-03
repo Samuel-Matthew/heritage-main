@@ -50,7 +50,7 @@ class SubscriptionRejectedNotification extends Notification
             ->line('Please review the reason above and contact our support team if you believe this was a mistake or if you need further assistance.')
             ->line('')
             ->line('You can resubmit your subscription request after addressing the issues mentioned above.')
-            ->action('Contact Support', 'mailto:support@heriglob.com')
+            ->action('Contact Support', 'mailto:support@heritageenergyglobal.com')
             ->line('')
             ->line('Best regards,')
             ->line('Heritage Energy Team');

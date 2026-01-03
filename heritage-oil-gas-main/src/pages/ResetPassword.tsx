@@ -68,7 +68,7 @@ const ResetPassword = () => {
         });
       }
     } catch (error: any) {
-      console.error("Token verification error:", error);
+      // console.error("Token verification error:", error);
       setTokenValid(false);
 
       if (error.response?.status === 422) {
@@ -172,7 +172,7 @@ const ResetPassword = () => {
         }, 2000);
       }
     } catch (error: any) {
-      console.error("Reset password error:", error);
+      // console.error("Reset password error:", error);
 
       if (error.response?.status === 422) {
         const errors = error.response?.data?.errors || {};

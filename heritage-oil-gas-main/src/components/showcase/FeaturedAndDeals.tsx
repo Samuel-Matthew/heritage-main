@@ -62,7 +62,7 @@ export function FeaturedProductsSection() {
       const response = await api.get("/featured-products?limit=8");
       setFeatured(response.data.data || response.data);
     } catch (err) {
-      console.error("Error fetching featured products:", err);
+      // console.error("Error fetching featured products:", err);
       setError("Failed to load featured products");
     } finally {
       setLoading(false);
@@ -207,7 +207,7 @@ export function HotDealsSection() {
       const response = await api.get("/hot-deals?limit=6");
       setDeals(response.data.data || response.data);
     } catch (err) {
-      console.error("Error fetching hot deals:", err);
+      // console.error("Error fetching hot deals:", err);
       setError("Failed to load hot deals");
     } finally {
       setLoading(false);

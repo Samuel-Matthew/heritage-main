@@ -37,7 +37,7 @@ class StoreRegistrationNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $dashboardUrl = config('app.dashboard_url', 'http://localhost:5174');
+        $dashboardUrl = config('app.dashboard_url');
 
         return (new MailMessage)
             ->subject('Store Registration Submitted - Heritage Oil & Gas')
@@ -55,8 +55,9 @@ class StoreRegistrationNotification extends Notification
             ->line('')
             ->line('If you have any questions or need to update your information, please contact our support team.')
             ->action('View Your Dashboard', $dashboardUrl . '/seller/dashboard')
-            ->line('Best regards,')
-            ->line('Heritage Energy Team');
+            // ->line('Best regards,')
+            // ->line('Heritage Energy Team')
+            ;
     }
 
     /**

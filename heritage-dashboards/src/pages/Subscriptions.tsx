@@ -119,7 +119,7 @@ function AdminSubscriptions() {
       const response = await api.get("/api/admin/subscription-plans");
       setSubscriptionPlans(response.data.data || response.data || []);
     } catch (error: any) {
-      console.error("Failed to fetch subscription plans:", error);
+      // console.error("Failed to fetch subscription plans:", error);
       toast.error("Failed to load subscription plans");
     } finally {
       setPlansLoading(false);
@@ -294,7 +294,7 @@ function AdminSubscriptions() {
         await fetchSubscriptionPlans();
       }
     } catch (error: any) {
-      console.error("Error updating plan:", error);
+      // console.error("Error updating plan:", error);
       toast.error(error.response?.data?.message || "Failed to update plan");
     } finally {
       setIsSavingPlan(false);
@@ -765,7 +765,7 @@ function StoreOwnerSubscription() {
       const response = await api.get("/api/admin/subscription-plans");
       setSubscriptionPlans(response.data.data || response.data || []);
     } catch (error: any) {
-      console.error("Failed to fetch subscription plans:", error);
+      // console.error("Failed to fetch subscription plans:", error);
       toast.error("Failed to load subscription plans");
     } finally {
       setPlansLoading(false);
@@ -779,7 +779,7 @@ function StoreOwnerSubscription() {
       const response = await api.get("/api/subscription/current");
       setCurrentSubscription(response.data.data || response.data || null);
     } catch (error: any) {
-      console.error("Failed to fetch subscription:", error);
+      // console.error("Failed to fetch subscription:", error);
       setCurrentSubscription(null);
     } finally {
       setIsLoadingSubscription(false);
@@ -793,7 +793,7 @@ function StoreOwnerSubscription() {
       const products = response.data.data || [];
       setProductsCount(products.length);
     } catch (error: any) {
-      console.error("Failed to fetch products count:", error);
+      // console.error("Failed to fetch products count:", error);
     }
   };
 
@@ -894,9 +894,9 @@ function StoreOwnerSubscription() {
   const displayStatus = currentSubscription?.status || "none";
 
   // Debug log to check current subscription
-  console.log("Current Subscription:", currentSubscription);
-  console.log("Subscription Plans:", subscriptionPlans);
-  console.log("Display Plan:", displayPlan);
+  // console.log("Current Subscription:", currentSubscription);
+  // console.log("Subscription Plans:", subscriptionPlans);
+  // console.log("Display Plan:", displayPlan);
 
   return (
     <div className="space-y-6">
